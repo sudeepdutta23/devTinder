@@ -1,11 +1,33 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 7777;
 
-app.use((req, res, next)=>{
-    res.send('Hello World!');
+app.get("/user", (req, res, next) => {
+    res.send({
+        firstName: "Sudeep",
+        lastName: "Dutta",
+        age: 25
+    });
 })
 
-app.listen(PORT, ()=>{
-console.log('Server is running on port '+PORT);
+app.post("/user", (req, res, next) => {
+    console.log(req.body);
+    res.send('Data successfuly saved to database!');
+})
+
+app.delete("/user", (req, res, next) => {
+    console.log(req.body);
+    res.send('Deleted Successfully!');
+})
+
+app.use("/test", (req, res, next) => {
+    res.send('hello from the server');
+})
+
+app.use("/", (req, res, next) => {
+    res.send('Namaste Sudeep');
+})
+
+app.listen(PORT, () => {
+    console.log('Server is running on port ' + PORT);
 })
