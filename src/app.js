@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 7777;
+require('dotenv').config();
 const connectDB = require("./config/database");
 const User = require('./model/user');
 
@@ -26,8 +26,8 @@ try {
 
 connectDB().then(() => {
     console.log("Connected to database successfully");
-    app.listen(PORT, () => {
-        console.log('Server is running on port ' + PORT);
+    app.listen(process.env.PORT, () => {
+        console.log('Server is running on port ' + process.env.PORT);
     })
 }).catch((err) => {
     console.log("Error connecting to database");
