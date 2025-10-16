@@ -73,11 +73,22 @@ app.delete('/user', async (req, res) => {
 })
 
 // Update user by id route
-app.patch('/user', async (req, res) => {
+app.patch('/user/:userId', async (req, res) => {
     try {
-        console.log(req.body);
+        const userId = req.params.userId;
+        const data = req.body;
+        console.log(data);
         
-        const result = await User.findByIdAndUpdate(req.body.userId, req.body);
+        const allowedUpdates = ['firstName', 'lastName', 'gender', "skills"];
+        const isValidPayload = Object.keys(data).every((key) => allowedUpdates.includes(key));
+        if(!isValidPayload){
+            throw new Error("Invalid payload!");
+        }
+        if(data?.skills?.length > 4){
+            throw new Error("A user can have maximum 4 skills");
+        }
+        
+        const result = await User.findByIdAndUpdate({ _id: userId }, data, { returnDocument: "after", runValidators: true });
         res.status(200).json({ message: "User updated successfully" });
     } catch (error) {
         console.log(error);
