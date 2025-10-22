@@ -1,3 +1,6 @@
+const jwt = require('jsonwebtoken');
+const User = require('../model/user');
+
 const adminAuth = (req,res, next) =>{
     req.token = "xyz"
     console.log("Admin auth called");
@@ -9,13 +12,26 @@ const adminAuth = (req,res, next) =>{
 
 }
 
-const userAuth = (req,res, next) =>{
-    req.token = "xyz"
-    console.log("User auth called");
-    if(req.token === "xyz"){
+const userAuth = async(req,res, next) =>{
+    try {
+         const token = req.cookies.token;
+            if(!token){
+                return res.status(401).json({ message: "Invalid Token!!!" });
+            }
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const { _id }= decoded;
+            console.log(_id);
+            
+            const user = await User.findById(_id);
+
+    if(user){
+        req.user = user;
         next()
     }else{
-        res.status(401).send("Unauthorized Access");
+        res.status(401).send("User not found");
+    }
+    } catch (error) {
+        res.status(401).json({ message: "Unauthorized" });
     }
 
 }

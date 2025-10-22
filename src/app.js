@@ -6,7 +6,7 @@ const User = require('./model/user');
 const { validateSignUp } = require('./utils/validate');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
-const jwt = require('jsonwebtoken');
+const { userAuth } = require('./middlewares/authHandler');
 
 app.use(express.json());
 app.use(cookieParser());
@@ -29,16 +29,17 @@ app.post('/signup', async (req, res) => {
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+        const hashPassword = password;
         const user = await User.findOne({ email});
         if(!user){
             return res.status(400).json({ message: "Invalid credentials" });
         }
-        isValidPassword = await bcrypt.compare(password, user.password);
+        isValidPassword = await user.comparePassword(hashPassword);
         if(!isValidPassword){
             return res.status(400).json({ message: "Invalid credentials" });
         }else{
-            const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h'});
-            res.cookie('token', token);
+            const token = user.getJWT();
+            res.cookie('token', token, { expires: new Date(Date.now() + 3600000 * 24 * 7), });
             res.status(200).json({ message: "Login successful" });
         }
 
@@ -47,16 +48,9 @@ app.post('/login', async (req, res) => {
     }
 })
 
-app.get('/profile', async(req, res) => {
+app.get('/profile', userAuth ,async(req, res) => {
     try {
-        const token = req.cookies.token;
-        if(!token){
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.userId = decoded.userId;
-        const user = await User.findById(req.userId);
-        console.log(user);
+        const user = req.user;
         
         if(!user){
             return res.status(404).json({ message: "User not found" });
@@ -68,81 +62,9 @@ app.get('/profile', async(req, res) => {
     }
 });
 
-// get single user by emailId
-app.get('/singleuser', async (req, res) => {
-    try {
-        const user = await User.findOne({ email: req.body.email });
-        if (user) {
-            res.status(200).json(user);
-        } else {
-            res.status(404).json({ message: "No user found" });
-        }
-    } catch (error) {
-        res.status(400).json({ message: "Error fetching users" });
-    }
-});
-
-
-// Get all users route
-app.get('/feed', async (req, res) => {
-    try {
-        const users = await User.find({});
-        if (users.length > 0) {
-            res.status(200).json(users);
-        } else {
-            res.status(404).json({ message: "No user found" });
-        }
-    } catch (error) {
-        res.status(400).json({ message: "Error fetching users" });
-    }
-})
-
-// Get users by email route
-app.get('/user', async (req, res) => {
-    try {
-        const users = await User.find({ email: req.body.email })
-        if (users.length > 0) {
-            res.status(200).json(users);
-        } else {
-            res.status(404).json({ message: "No user found" });
-        }
-    } catch (error) {
-        res.status(400).json({ message: "Error fetching users" });
-    }
-});
-
-// Delete user by id route
-app.delete('/user', async (req, res) => {
-    try {
-        const result = await User.findByIdAndDelete(req.body._id);
-        res.status(200).json({ message: "User deleted successfully" });
-    } catch (error) {
-        res.status(400).json({ message: "Error deleting user" });
-    }
-})
-
-// Update user by id route
-app.patch('/user/:userId', async (req, res) => {
-    try {
-        const userId = req.params.userId;
-        const data = req.body;
-        console.log(data);
-
-        const allowedUpdates = ['firstName', 'lastName', 'gender', "skills"];
-        const isValidPayload = Object.keys(data).every((key) => allowedUpdates.includes(key));
-        if (!isValidPayload) {
-            throw new Error("Invalid payload!");
-        }
-        if (data?.skills?.length > 4) {
-            throw new Error("A user can have maximum 4 skills");
-        }
-
-        const result = await User.findByIdAndUpdate({ _id: userId }, data, { returnDocument: "after", runValidators: true });
-        res.status(200).json({ message: "User updated successfully" });
-    } catch (error) {
-        console.log(error);
-        res.status(400).json({ message: "Error updating user" });
-    }
+app.post('/sendConnectionRequest', userAuth, async(req, res) => {
+    console.log("Send connection request called");
+    res.status(200).json({ message: "Connection request sent from " + req.user.firstName + '.' });
 })
 
 
