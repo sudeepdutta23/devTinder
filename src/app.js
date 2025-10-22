@@ -5,9 +5,11 @@ const connectDB = require("./config/database");
 const User = require('./model/user');
 const { validateSignUp } = require('./utils/validate');
 const bcrypt = require('bcrypt');
-
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 
 app.use(express.json());
+app.use(cookieParser());
 
 // Signup to user route
 app.post('/signup', async (req, res) => {
@@ -35,6 +37,8 @@ app.post('/login', async (req, res) => {
         if(!isValidPassword){
             return res.status(400).json({ message: "Invalid credentials" });
         }else{
+            const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h'});
+            res.cookie('token', token);
             res.status(200).json({ message: "Login successful" });
         }
 
@@ -42,6 +46,27 @@ app.post('/login', async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 })
+
+app.get('/profile', async(req, res) => {
+    try {
+        const token = req.cookies.token;
+        if(!token){
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.userId = decoded.userId;
+        const user = await User.findById(req.userId);
+        console.log(user);
+        
+        if(!user){
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "Profile fetched successfully", data: user });
+
+    } catch (error) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+});
 
 // get single user by emailId
 app.get('/singleuser', async (req, res) => {
