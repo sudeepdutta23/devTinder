@@ -22,14 +22,14 @@ router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         const hashPassword = password;
-        const user = await User.findOne({ email});
-        if(!user){
+        const user = await User.findOne({ email });
+        if (!user) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
         isValidPassword = await user.comparePassword(hashPassword);
-        if(!isValidPassword){
+        if (!isValidPassword) {
             return res.status(400).json({ message: "Invalid credentials" });
-        }else{
+        } else {
             const token = user.getJWT();
             res.cookie('token', token, { expires: new Date(Date.now() + 3600000 * 24 * 7), });
             res.status(200).json({ message: "Login successful" });
@@ -38,6 +38,10 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
+})
+
+router.post('/logout', async (req, res) => {
+    res.cookie('token', null, { expires: new Date(Date.now()), }).status(200).json({ message: "Logout successful" });
 })
 
 module.exports = router;
