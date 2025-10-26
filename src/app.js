@@ -19,7 +19,6 @@ app.use('/', userRouter);
 app.use('/', requestRouter);
 
 app.post('/sendConnectionRequest', userAuth, async(req, res) => {
-    console.log("Send connection request called");
     res.status(200).json({ message: "Connection request sent from " + req.user.firstName + '.' });
 })
 

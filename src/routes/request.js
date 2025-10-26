@@ -61,16 +61,12 @@ router.post('/request/review/:status/:requestId', userAuth, async (req, res) => 
             return res.status(400).json({ message: `Invalid status: ${status}` });
         }
 
-        console.log("user: ", req.user);
-        console.log("params: ", req.params);
-
         // Find the connection request
         const connectionReq = await ConnectionRequest.findOne({
             _id: requestId,
             toUserId,
             status: 'intrested'
         })
-        console.log("connectionReq: ", connectionReq);
         if (!connectionReq) {
             return res.status(404).json({ message: `Connection request not found` });
         }
@@ -83,7 +79,7 @@ router.post('/request/review/:status/:requestId', userAuth, async (req, res) => 
         });
 
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        res.status(500).send({ message: error.message });
     }
 
 });

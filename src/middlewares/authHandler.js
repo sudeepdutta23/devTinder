@@ -3,7 +3,6 @@ const User = require('../model/user');
 
 const adminAuth = (req,res, next) =>{
     req.token = "xyz"
-    console.log("Admin auth called");
     if(req.token === "xyz"){
         next()
     }else{
@@ -20,7 +19,6 @@ const userAuth = async(req,res, next) =>{
             }
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const { _id }= decoded;
-            console.log(_id);
             
             const user = await User.findById(_id);
 
