@@ -3,12 +3,21 @@ const app = express();
 require('dotenv').config();
 const connectDB = require("./config/database");
 const cookieParser = require('cookie-parser');
-const { userAuth } = require('./middlewares/authHandler');
 const authRouter = require('./routes/auth');
 const profileRouter = require('./routes/profile');
 const userRouter = require('./routes/user');
 const requestRouter = require('./routes/request');
+const cors = require('cors'); 
 
+// --- CORS Configuration ---
+// Define the allowed origin (your frontend)
+const corsOptions = {
+    origin: 'http://localhost:5173', // Allow your frontend to make requests
+    credentials: true, // Allow cookies to be sent with requests
+};
+
+// --- Middleware ---
+app.use(cors(corsOptions)); // Enable CORS with your specific options
 app.use(express.json());
 app.use(cookieParser());
 
@@ -18,11 +27,7 @@ app.use('/', profileRouter);
 app.use('/', userRouter);
 app.use('/', requestRouter);
 
-app.post('/sendConnectionRequest', userAuth, async(req, res) => {
-    res.status(200).json({ message: "Connection request sent from " + req.user.firstName + '.' });
-})
-
-
+// --- Database and Server Start ---
 connectDB().then(() => {
     app.listen(process.env.PORT, () => {
         console.log('Server is running on port ' + process.env.PORT);

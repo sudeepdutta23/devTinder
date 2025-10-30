@@ -44,7 +44,7 @@ router.post('/request/send/:status/:toUserId', userAuth, async (req, res) => {
                 status
             });
         await newRequest.save();
-        res.status(201).send(newRequest);
+        res.status(201).send({ data: newRequest, message: `${req.user.firstName} is ${status} to ${userExists.firstName}` });
     } catch (error) {
         res.status(500).send({ message: error.message });
     }

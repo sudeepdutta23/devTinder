@@ -30,8 +30,12 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials" });
         } else {
             const token = user.getJWT();
-            res.cookie('token', token, { expires: new Date(Date.now() + 3600000 * 24 * 7), });
-            res.status(200).json({ message: "Login successful" });
+            res.cookie('token', token, 
+                { expires: new Date(Date.now() + 3600000 * 24 * 7), 
+                  httpOnly: true, 
+                  secure: true, 
+                  sameSite: 'None' });
+            res.status(200).json({ message: "Login successful", data: user });
         }
 
     } catch (error) {
