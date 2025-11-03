@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../model/user');
 const bcrypt = require('bcrypt');
 const { validateSignUp } = require('../utils/validate');
+const { sendEmail } = require('../utils/mailer');
 
 router.post('/signup', async (req, res) => {
     try {
@@ -11,6 +12,11 @@ router.post('/signup', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ firstName, lastName, email, password: hashedPassword });
         await newUser.save();
+        sendEmail(
+            email,
+            'Welcome to DevTinder!',
+            `Hello ${firstName},\n\nThank you for signing up for DevTinder! We're excited to have you on board.\n\nBest regards,\nDevTinder Team`
+        );
         res.status(200).json({ message: "User created successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });

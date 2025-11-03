@@ -4,6 +4,7 @@ const ConnectionRequest = require('../model/connection');
 const User = require('../model/user');
 const { userAuth } = require('../middlewares/authHandler');
 const { Types } = require('mongoose');
+const { sendEmail } = require('../utils/mailer');
 
 // Send connection request
 router.post('/request/send/:status/:toUserId', userAuth, async (req, res) => {
@@ -34,6 +35,11 @@ router.post('/request/send/:status/:toUserId', userAuth, async (req, res) => {
             ]
         });
         if (existingRequest) {
+            sendEmail(
+                userExists.email,
+                'Connection Request Attempt',
+                `Hello ${userExists.firstName},\n\n${req.user.firstName} attempted to send you a connection request, but a request already exists between you two.\n\nBest regards,\nDevTinder Team`
+            );
             return res.status(400).send({ message: `Connection request already exists between users` });
         }
 
@@ -44,6 +50,11 @@ router.post('/request/send/:status/:toUserId', userAuth, async (req, res) => {
                 status
             });
         await newRequest.save();
+        sendEmail(
+            userExists.email,
+            'New Connection Request',
+            `Hello ${userExists.firstName},\n\n${req.user.firstName} has sent you a connection request.\n\nBest regards,\nDevTinder Team`
+        );
         res.status(201).send({ data: newRequest, message: `${req.user.firstName} is ${status} to ${userExists.firstName}` });
     } catch (error) {
         res.status(500).send({ message: error.message });
