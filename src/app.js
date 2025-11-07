@@ -7,7 +7,10 @@ const authRouter = require('./routes/auth');
 const profileRouter = require('./routes/profile');
 const userRouter = require('./routes/user');
 const requestRouter = require('./routes/request');
+const paymentRouter = require('./routes/payment');
 const cors = require('cors'); 
+
+require('./utils/cronjob'); // Import and run the cron job
 
 // --- CORS Configuration ---
 // Define the allowed origin (your frontend)
@@ -26,6 +29,7 @@ app.use('/', authRouter);
 app.use('/', profileRouter);
 app.use('/', userRouter);
 app.use('/', requestRouter);
+app.use('/', paymentRouter);
 
 // --- Database and Server Start ---
 connectDB().then(() => {
@@ -33,5 +37,5 @@ connectDB().then(() => {
         console.log('Server is running on port ' + process.env.PORT);
     })
 }).catch((err) => {
-    console.log("Error connecting to database");
+    console.log("Error connecting to database", err);
 });
