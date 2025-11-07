@@ -87,4 +87,28 @@ router.post("/payment/webhook", async (req, res) => {
     }
 });
 
+router.get('/payment/premium/verify', userAuth, async (req, res) => {
+    try {
+        const user = req.user;
+        
+        if(!user.isPremium){
+            return res.status(200).json({
+                data: { isPremium: false },
+                message: 'User is not premium'
+            });
+        }
+        res.status(200).json({
+            data: { isPremium: true },
+            message: 'User is premium'
+        });
+
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Internal Server Error'
+        });
+    }
+})
+
 module.exports = router;
