@@ -8,7 +8,10 @@ const profileRouter = require('./routes/profile');
 const userRouter = require('./routes/user');
 const requestRouter = require('./routes/request');
 const paymentRouter = require('./routes/payment');
+const chatRouter = require('./routes/chat');
 const cors = require('cors'); 
+const http = require('http');
+const { initializeSocket } = require('./utils/socket');
 
 require('./utils/cronjob'); // Import and run the cron job
 
@@ -18,6 +21,10 @@ const corsOptions = {
     origin: 'http://localhost:5173', // Allow your frontend to make requests
     credentials: true, // Allow cookies to be sent with requests
 };
+
+const server = http.createServer(app);
+
+initializeSocket(server);
 
 // --- Middleware ---
 app.use(cors(corsOptions)); // Enable CORS with your specific options
@@ -30,10 +37,11 @@ app.use('/', profileRouter);
 app.use('/', userRouter);
 app.use('/', requestRouter);
 app.use('/', paymentRouter);
+app.use('/', chatRouter);
 
 // --- Database and Server Start ---
 connectDB().then(() => {
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
         console.log('Server is running on port ' + process.env.PORT);
     })
 }).catch((err) => {
